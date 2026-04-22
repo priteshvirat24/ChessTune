@@ -1,0 +1,52 @@
+# ═══════════════════════════════════════════════
+# ChessTune Engine — Application Configuration
+# Headless async worker (no HTTP port)
+# ═══════════════════════════════════════════════
+
+spring:
+  application:
+    name: chesstune-engine
+
+  # Disable web server — this is a headless worker
+  main:
+    web-application-type: none
+
+  # ─── PostgreSQL ──────────────────────────────
+  datasource:
+    url: jdbc:postgresql://${CHESSTUNE_DB_HOST:localhost}:${CHESSTUNE_DB_PORT:5432}/${CHESSTUNE_DB_NAME:chesstune}
+    username: ${CHESSTUNE_DB_USER:chesstune}
+    password: ${CHESSTUNE_DB_PASSWORD:chesstune_dev_2024}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ─── RabbitMQ ────────────────────────────────
+  rabbitmq:
+    host: ${CHESSTUNE_RABBITMQ_HOST:localhost}
+    port: ${CHESSTUNE_RABBITMQ_PORT:5672}
+    username: ${CHESSTUNE_RABBITMQ_USER:chesstune}
+    password: ${CHESSTUNE_RABBITMQ_PASSWORD:chesstune_mq_dev}
+    listener:
+      simple:
+        concurrency: 2
+        max-concurrency: 5
+        prefetch: 1
+
+# ─── Stockfish Configuration ────────────────────
+chesstune:
+  stockfish:
+    path: ${CHESSTUNE_STOCKFISH_PATH:/usr/local/bin/stockfish}
+    depth: 20
+    blunder-threshold-cp: 150
+    mistake-threshold-cp: 75
+
+# ─── Logging ─────────────────────────────────────
+logging:
+  level:
+    com.chesstune: DEBUG

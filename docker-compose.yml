@@ -1,0 +1,75 @@
+##############################################
+# ChessTune — Docker Compose (Dev)
+# Services: PostgreSQL 16, Redis 7, RabbitMQ 3
+##############################################
+
+services:
+
+  # ─── PostgreSQL 16 ────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: chesstune-postgres
+    environment:
+      POSTGRES_DB: ${CHESSTUNE_DB_NAME:-chesstune}
+      POSTGRES_USER: ${CHESSTUNE_DB_USER:-chesstune}
+      POSTGRES_PASSWORD: ${CHESSTUNE_DB_PASSWORD:-chesstune_dev_2024}
+    ports:
+      - "${CHESSTUNE_DB_PORT:-5432}:5432"
+    volumes:
+      - chesstune_pg_data:/var/lib/postgresql/data
+    networks:
+      - chesstune-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CHESSTUNE_DB_USER:-chesstune}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── Redis 7 ──────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: chesstune-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${CHESSTUNE_REDIS_PORT:-6379}:6379"
+    volumes:
+      - chesstune_redis_data:/data
+    networks:
+      - chesstune-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── RabbitMQ 3 (Management UI) ──────────
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: chesstune-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${CHESSTUNE_RABBITMQ_USER:-chesstune}
+      RABBITMQ_DEFAULT_PASS: ${CHESSTUNE_RABBITMQ_PASSWORD:-chesstune_mq_dev}
+    ports:
+      - "${CHESSTUNE_RABBITMQ_PORT:-5672}:5672"
+      - "${CHESSTUNE_RABBITMQ_MGMT_PORT:-15672}:15672"
+    volumes:
+      - chesstune_rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - chesstune-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  chesstune-net:
+    driver: bridge
+
+volumes:
+  chesstune_pg_data:
+  chesstune_redis_data:
+  chesstune_rabbitmq_data:

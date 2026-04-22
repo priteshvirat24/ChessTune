@@ -1,0 +1,27 @@
+# ═══════════════════════════════════════════════
+# ChessTune Arena — Application Configuration
+# WebSocket Service on port 8081
+# ═══════════════════════════════════════════════
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: chesstune-arena
+
+  # ─── Redis ───────────────────────────────────
+  data:
+    redis:
+      host: ${CHESSTUNE_REDIS_HOST:localhost}
+      port: ${CHESSTUNE_REDIS_PORT:6379}
+
+# ─── JWT Configuration (shared secret) ──────────
+chesstune:
+  jwt:
+    secret: ${CHESSTUNE_JWT_SECRET:chesstune-dev-secret-key-change-in-production-minimum-256-bits-long}
+
+# ─── Logging ─────────────────────────────────────
+logging:
+  level:
+    com.chesstune: DEBUG
