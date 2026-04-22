@@ -5,12 +5,14 @@ WORKDIR /app
 COPY . .
 # Build the application
 RUN mvn clean package -DskipTests
+# Extract only the executable fat jar, avoiding -plain.jar or other artifacts
+RUN find chesstune-core/target -maxdepth 1 -name "*.jar" ! -name "*-plain.jar" -exec cp {} /app.jar \;
 
 # Stage 2: Runtime image
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
-# Copy the built jar from the chesstune-core module to the runtime root
-COPY --from=build /app/chesstune-core/target/*.jar app.jar
+# Copy the built jar from the builder stage root
+COPY --from=build /app.jar app.jar
 
 # Run the application
 CMD ["java", "-jar", "app.jar"]
